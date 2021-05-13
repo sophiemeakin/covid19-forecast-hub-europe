@@ -1,0 +1,66 @@
+<p id="intro">
+    Choose the date and type of report you wish do view using the dropdown menu. The _Ensemble_ report shows the recent forecasts and performance of the ensemble, whereas the _Evaluation_ report shows model-by-model performance, overall and by country. The reports get updated every Tuesday.
+</p>
+
+<script>
+function getURL(date, report, country) {
+  var str = "reports/";
+  str = str.concat(report, "-report-", date);
+  if (!(report === "ensemble")) {
+    str = str.concat("-", country);
+  }
+  str = str.concat(".html");
+  return(str);
+}
+
+function gotoURL() {
+  var date = date_options.options[date_options.selectedIndex].value;
+  var report = report_options.options[report_options.selectedIndex].value;
+  var country = "Overall";
+  var country_element = document.getElementById("country_options");
+  if (typeof(country_element) != 'undefined' && country_element != null) {
+    country = country_options.options[country_options.selectedIndex].value; 
+  }
+  window.location.replace(getURL(date, report, country));
+}
+</script>
+
+```{r selectors, results = 'asis', echo = FALSE, message = FALSE}
+source(here::here("code", "reports", "get-dates-and-countries.r"))
+cat("<select id=\"date_options\" name=\"date_options\" ",
+    "onchange=\"gotoURL()\">\n")
+for (date in as.character(dates)) {
+  cat(paste0("<option value=\"", date, "\"",
+      if_else(date == params$report_date, 
+              " selected=\"selected\"", 
+              ""),
+      ">", date, "</option>\n"))
+}
+cat("</select>\n")
+cat("<select id=\"report_options\" name=\"report_options\" ",
+    "onchange=\"gotoURL()\">\n")
+cat("<option value=\"ensemble\"",
+    if_else(report_type == "ensemble", 
+            " selected=\"selected\"", 
+            ""),
+    ">Ensemble</option>\n")
+cat("<option value=\"evaluation\"",
+    if_else(report_type == "evaluation", 
+            " selected=\"selected\"", 
+            ""),
+   ">Evaluation</option>\n")
+cat("</select>\n")
+if (report_type == "evaluation") {
+  cat("<select id=\"country_options\" name=\"country_options\" ",
+      "onchange=\"gotoURL()\">\n")
+  report_countries <- c("Overall", countries)
+  for (country in report_countries) {
+    cat(paste0("<option value=\"", country, "\"",
+    if_else(params$location_name == country, 
+            " selected=\"selected\"", 
+            ""),
+    ">", country, "</option>\n"))
+  }
+  cat("</select>\n")
+}
+```

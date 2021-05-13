@@ -10,9 +10,12 @@ output:
     theme: yeti
     self_contained: true
     css: https://covid19forecasthub.eu/css/styles.css
-title: "`r paste('European COVID-19 Forecast Hub Evaluation Report for', params$location_name)`"
+title: "Weekly reports"
 date: "`r params$report_date`"
 ---
+
+```{r, child = "../selector.Rmd"}
+```
 
 ```{r setup, include=FALSE}
 library(scoringutils)
@@ -56,14 +59,11 @@ summarise_by = c("model", "target_variable")
 target_variables <- c(Cases = "inc case", Deaths = "inc death")
 ```
 
-
-## {.unlisted .unnumbered}
-
 ---
 
 ```{r forecast-vis-header, include = FALSE, eval = include_forecast_plot}
-out <- paste0("\n\n## Forecast visualisation (", params$location_name,
-              ") {.tabset .tabset_fade}\n\n")
+out <- paste("\n\n#", "Evaluation Report for", params$location_name)
+out <- paste0("\n\n## {.tabset .tabset_fade}\n\n")
 
 out <- c(out, "Forecast visualisations. The date of the tab marks the date on",
          "which a forecast was made.\n\n")

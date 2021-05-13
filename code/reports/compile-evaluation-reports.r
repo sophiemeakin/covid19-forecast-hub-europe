@@ -11,8 +11,13 @@ library(lubridate)
 
 options(knitr.duplicate.label = "allow")
 
-report_date <-
+start_date <- as.Date("2021-03-22")
+recreate <- TRUE
+
+report_dates <-
   lubridate::floor_date(lubridate::today(), "week", week_start = 7) + 1
+report_type <- "evaluation"
+
 locations <- hub_locations_ecdc
 
 suppressWarnings(dir.create(here::here("html")))
@@ -44,34 +49,54 @@ setnames(truth, old = c("value"),
 data <- scoringutils::merge_pred_and_obs(forecasts, truth,
                                          join = "full")
 
-for (i in 1:nrow(hub_locations_ecdc)) {
-  country_code <- hub_locations_ecdc$location[i]
-  country <- hub_locations_ecdc$location_name[i]
-
-  rmarkdown::render(here::here("code", "reports", "evaluation",
-                               "evaluation-by-country.Rmd"),
-                    output_format = "html_document",
-                    params = list(data = data,
-                                  location_code = country_code,
-                                  location_name = country,
-                                  report_date = report_date),
-                    output_file =
-                      here::here("html",
-                                 paste0("evaluation-report-", report_date,
-                                        "-", country, ".html")),
-                    envir = new.env())
+if (recreate) {
+  report_dates <- seq(start_date, report_dates, by = 7)
 }
 
-rmarkdown::render(here::here("code", "reports", "evaluation",
-                             "evaluation-report.Rmd"),
-                  params = list(data = data,
-                                report_date = report_date),
-                  output_format = "html_document",
-                  output_file =
-                    here::here("html", paste0("evaluation-report-", report_date,
-                                              "-Overall.html")),
-                  envir = new.env())
+for (rdc in as.character(report_dates)) {
+    report_date <- as.Date(rdc)
+    for (i in seq_len(nrow(hub_locations_ecdc))) {
+        country_code <- hub_locations_ecdc$location[i]
+        country <- hub_locations_ecdc$location_name[i]
 
-## to make this generalisable
-# allow bits to be turned off and on
-# somehow pass down the filtering
+        rmarkdown::render(here::here(
+            "code", "reports", "evaluation",
+            "evaluation-by-country.Rmd"
+        ),
+        output_format = "html_document",
+        params = list(
+            data = data,
+            location_code = country_code,
+            location_name = country,
+            report_date = report_date
+        ),
+        output_file =
+            here::here(
+                "html",
+                paste0(
+                    "evaluation-report-", report_date,
+                    "-", country, ".html"
+                )
+            ),
+        envir = new.env()
+        )
+    }
+
+    rmarkdown::render(here::here(
+        "code", "reports", "evaluation",
+        "evaluation-report.Rmd"
+    ),
+    params = list(
+        data = data,
+        report_date = report_date,
+        location_name = "Overall"
+    ),
+    output_format = "html_document",
+    output_file =
+        here::here("html", paste0(
+            "evaluation-report-", report_date,
+            "-Overall.html"
+        )),
+    envir = new.env()
+    )
+}
