@@ -20,17 +20,15 @@ scores <- scoringutils::eval_forecasts(
 
 coverage <- scores %>%
   dplyr::filter(range %in% c(50, 95)) %>%
-  select(range, forecast_date, `Target variable` = target_variable,
-         `Forecast horizon` = horizon, coverage) %>%
+  select(range, forecast_date, target_variable, horizon, coverage) %>%
   distinct() %>%
-  mutate(range = paste0(range, "% coverage"),
-         `Forecast horizon` =
-           paste0(`Forecast horizon`, " week",
-                  if_else(`Forecast horizon` == 1, "", "s")),
-         `Target variable` = recode_factor(`Target variable`,
-                                         `inc case` = "Cases",
-                                         `inc death` = "Deaths"),
-         coverage = round(coverage, 2))
+  mutate(
+    range = paste0(range, "% coverage"),
+    `Forecast horizon` = paste0(horizon, " week", if_else(horizon == 1, "", "s")),
+    `Target variable` = forcats::fct_recode(target_variable, !!!target_variables),
+    coverage = round(coverage, 2),
+    .keep = "unused"
+  )
 
 coverage %>%
   tidyr::pivot_wider(names_from = range, values_from = coverage) %>%
