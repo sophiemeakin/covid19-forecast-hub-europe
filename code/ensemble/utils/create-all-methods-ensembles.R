@@ -17,7 +17,9 @@ all_dates <- vroom(here("code", "ensemble", "EuroCOVIDhub",
                         "method-by-date.csv")) %>%
   pull(forecast_date)
 
-for (cutoff in c(TRUE, FALSE)) {
+all_cutoffs <- c(FALSE, TRUE)
+
+for (cutoff in all_cutoffs) {
   if (cutoff) {
     all_dates <- all_dates[-seq(1, 7)]
   } else {
